@@ -1,0 +1,127 @@
+      Sub TickerSummary()
+         ' turn off screen upadting to improve run time
+         Application.ScreenUpdating = False
+         Dim ws As Worksheet
+         'Dim starting_ws As Worksheet
+         'Set starting_ws = ActiveSheet
+         ' initiate the for statement to cycle through each worksheet
+         For Each ws In Worksheets
+           ws.Activate
+           Cells(1, 10).Value = "Ticker"
+           Cells(1, 11).Value = "Yearly Change"
+           Cells(1, 12).Value = "Percent Change"
+           Cells(1, 13).Value = "Total Stock Volume"
+         Dim i As Double  'this is my counter for to go through each row
+         Dim j As Integer ' this is the counter that will be used to populate the ticker info
+         i = 2
+         j = 2
+         row_Tot = Cells(Rows.Count, 1).End(xlUp).Row
+         Dim runningSum As Double
+         Dim YearlyOpen As Double
+         Dim symbolFlag As Integer
+         ' initialize each variable to 0
+         YearlyOpen = 0
+         runningSum = 0
+         symbolFlag = 0
+                  
+         For i = 2 To row_Tot
+         
+           currentTicker = Cells(i, 1).Value
+           nextTicker = Cells(i + 1, 1).Value
+             If (currentTicker = nextTicker) Then
+               ' this symbol flag is used so that we can set the opening value once per stock ticker
+               ' once set to 1, we will capture the ticker value and won't reset to 0 again until we move
+               ' on to the next ticker
+               If (symbolFlag = 0) Then
+                 YearlyOpen = Cells(i, 3)
+                 symbolFlag = 1
+               End If
+               runningSum = runningSum + Cells(i, 7).Value
+             Else
+               runningSum = runningSum + Cells(i, 7).Value
+               Cells(j, 10).Value = currentTicker
+               Cells(j, 11) = Cells(i, 6).Value - YearlyOpen
+               ' Since the case when the value = 0 was not discussed, we will set these to green
+               If (Cells(j, 11).Value >= 0) Then
+                Cells(j, 11).Interior.Color = vbGreen
+               Else
+                 Cells(j, 11).Interior.Color = vbRed
+               End If
+                 If (Cells(i, 6) = YearlyOpen) Then
+                   Cells(j, 12) = 0
+                 Else
+                ' calculate the percentage change. If the opening value was 0, then we set the percentage
+                ' change to 0 since it returns a division by 0 error
+                   If (YearlyOpen = 0) Then
+                     Cells(j, 12).Value = 0
+                   Else
+                     Cells(j, 12) = (Cells(i, 6).Value - YearlyOpen) / YearlyOpen
+                   End If
+                   
+                   Cells(j, 12).NumberFormat = "0.00%"
+                 End If
+               Cells(j, 13).Value = runningSum
+               j = j + 1
+               ' reset variables used for next stock ticker
+               runningSum = 0
+               YearlyOpen = 0
+               symbolFlag = 0
+             End If
+          Next
+          
+          Cells(1, 17).Value = "Ticker"
+          Cells(1, 18).Value = "Value"
+          Cells(2, 16).Value = "Greatest % Increase"
+          Cells(3, 16).Value = "Greatest % Decrease"
+          Cells(4, 16).Value = "Greatest Total Volume"
+         
+         i = 2
+         Dim maxPercent As Double
+         Dim minPercent As Double
+         Dim maxTicker As String
+         Dim minTicker As String
+         Dim maxVolume As Double
+         Dim maxVolumeTicker As String
+         
+         maxPercent = Cells(i, 12).Value
+         minPercent = Cells(i, 12).Value
+         maxVolume = Cells(i, 11).Value
+         
+         For i = 2 To j
+            'Calculate largest percent increase
+            If (Cells(i, 12).Value >= maxPercent) Then
+                maxPercent = Cells(i, 12).Value
+                maxTicker = Cells(i, 10).Value
+                Cells(2, 17).Value = maxTicker
+                Cells(2, 18).Value = maxPercent
+            End If
+            
+            'Calculate greatest percent decrease
+            If (Cells(i, 12).Value <= minPercent) Then
+                minPercent = Cells(i, 12).Value
+                minTicker = Cells(i, 10).Value
+                Cells(3, 17).Value = minTicker
+                Cells(3, 18).Value = minPercent
+            End If
+            
+            'Calculate the max volume
+            If (Cells(i, 13).Value >= maxVolume) Then
+                maxVolume = Cells(i, 13).Value
+                maxVolumeTicker = Cells(i, 10).Value
+                Cells(4, 17).Value = maxVolumeTicker
+                Cells(4, 18).Value = maxVolume
+            End If
+            
+            'Set the format to percent for those in the max/min column
+            Range("R2:R3").NumberFormat = "0.00%"
+         Next
+         
+            
+         Next
+
+      End Sub
+
+
+
+
+
